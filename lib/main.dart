@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_final_fields, library_private_types_in_public_api, prefer_const_constructors
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -127,36 +129,69 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void showExerciseDialog({required int exercise}) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Übung 1"),
-          content: Text(
-              "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren."),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Abbrechen"),
-              onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Schließt den Dialog ohne etwas zu tun
-              },
-            ),
-            TextButton(
-              child: Text("Los geht's"),
-              onPressed: () {
-                setAlternativeSettings(exercise: -1); // Ruft deine Funktion auf
-                setAlternativeSettings(
-                    exercise: exercise); // Ruft deine Funktion auf
-                Navigator.of(context)
-                    .pop(); // Schließt den Dialog nach der Ausführung
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Übung $exercise"),
+        content: Text(
+          "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren."
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Abbrechen"),
+            onPressed: () => Navigator.of(context).pop(), // Schließt den Dialog ohne etwas zu tun
+          ),
+          TextButton(
+            child: Text("Los geht's"),
+            onPressed: () {
+              // Schließt den Übungsdialog
+              Navigator.of(context).pop();
+              // Zeigt den Lade-Dialog
+              showLoadingDialog();
+                  setAlternativeSettings(exercise: exercise);
+              // Führt nach einer Verzögerung die setAlternativeSettings-Funktion aus
+              Future.delayed(Duration(seconds: 2), () {
+                if (mounted) {
+                }
+              });
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void showLoadingDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Der Benutzer darf den Ladedialog nicht schließen
+    builder: (BuildContext context) {
+      return WillPopScope(
+        onWillPop: () async => false, // Verhindert das Schließen des Dialogs durch Hardware-Zurück-Taste
+        child: AlertDialog(
+          title: Text("Übung wird vorbereitet"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text("Bitte warten..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+  // Starte einen Timer, der nach 2 Sekunden den Dialog schließt
+  Timer(Duration(seconds: 2), () {
+    if (mounted) {
+      Navigator.of(context).pop(); // Schließt den Ladedialog
+    }
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
