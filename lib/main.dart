@@ -184,10 +184,15 @@ class _BIOSPageState extends State<BIOSPage> {
             ], rows: rows),
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
+            ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(Icons.close),
+              label: Text("Schließen"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
+           
             ElevatedButton.icon(
               onPressed: () async {
                 // await exportData(rows); // Stelle sicher, dass die _rows-Variable deine DataRow-Liste enthält
@@ -241,9 +246,11 @@ class _BIOSPageState extends State<BIOSPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Übung $exercise"),
-          content: Text(
-              "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren."),
+          title: exercise > 0 ? Text("Übung $exercise"):Text("Zurücksetzen"),
+          content: 
+              exercise > 0 ? Text(
+              "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren.")
+              : Text("Bestätigen Sie, dass Sie wirklich sämtliche Werte zurückzusetzen wollen. \nAktion kann nicht rückgängig gemacht werden."),
           actions: <Widget>[
             TextButton(
               child: Text("Abbrechen"),
@@ -362,7 +369,7 @@ class _BIOSPageState extends State<BIOSPage> {
                     exercise: -1); // Deine Methode zum Anzeigen des Dialogs
               },
               icon: Icon(
-                Icons.numbers, // Das Icon für den Button
+                Icons.refresh, // Das Icon für den Button
                 size: 20, // Die Icon-Größe
               ),
               label: Text(
@@ -380,7 +387,7 @@ class _BIOSPageState extends State<BIOSPage> {
                 ChangedSettings();
               },
               icon: Icon(
-                Icons.check, // Das Icon für den Button
+                Icons.history, // Das Icon für den Button
                 size: 20, // Die Icon-Größe
               ),
               label: Text(
