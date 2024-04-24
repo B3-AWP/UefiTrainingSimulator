@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:uefi_simulator/EntryWidget.dart';
+import 'package:uefi_simulator/controller/exportCsv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
 import 'package:uefi_simulator/model/navigationModel.dart';
 
@@ -47,6 +48,7 @@ class BIOSPage extends StatefulWidget {
 
 class _BIOSPageState extends State<BIOSPage> {
   int _selectedPageIndex = 0;
+  int _currentExercise = 0;
   Map<String, String> initialSettings = {};
   final NavigationModel navigationModel =
       NavigationModel(); // Make sure NavigationModel is correctly defined with entries.
@@ -85,6 +87,14 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void setinitialSettings({required int exercise}) async {
+
+    setState(() {
+      if (exercise > 0) {
+        _currentExercise = exercise; // Setze den aktuellen Übungszustand
+      } else {
+        _currentExercise = 0;
+      }
+    });
     // Hole die aktuellen ersten Werte der Einstellungen.
 
     // 1. Schritt: Auf Basis des Navigationsmodell werden die Werte gesetzt
@@ -108,7 +118,7 @@ class _BIOSPageState extends State<BIOSPage> {
 
     // 2. Schritt: Werte werden mit Custom-Default-Options überschrieben
     initialSettings.addAll(customDefaultOptions());
-
+    print("Initial $initialSettings");
     // 2. Schritt: Werte werden mit Übungsaufgaben überschrieben
     Map<String, String> customSettings;
     switch (exercise) {
@@ -122,7 +132,7 @@ class _BIOSPageState extends State<BIOSPage> {
         break;
     }
 
-    print("Alle Settings: $initialSettings");
+    print("Übungs-Settings: $initialSettings");
 
     // Aktualisiert die Einstellungen mit neuen Werten.
     Provider.of<SettingsModel>(context, listen: false)
@@ -138,6 +148,8 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void ChangedSettings() async {
+        print("Alle Settings vor Änderung: $initialSettings");
+
     List<DataRow> rows = [];
     for (var key in initialSettings.keys) {
       String? currentValue = await getSelectedOption(key);
@@ -176,6 +188,20 @@ class _BIOSPageState extends State<BIOSPage> {
               child: Text('OK'),
               onPressed: () => Navigator.of(context).pop(),
             ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                // await exportData(rows); // Stelle sicher, dass die _rows-Variable deine DataRow-Liste enthält
+                exportToCSV(rows);
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.save_alt),
+              label: Text("Exportieren"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+            ),
+           
+          
           ],
         );
       },
@@ -281,8 +307,16 @@ class _BIOSPageState extends State<BIOSPage> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(80.0), // Vergrößerte AppBar-Höhe
         child: AppBar(
-          toolbarHeight: 80,
-          title: Text('Lenovo V55t-15ARE (11KF,11KG,11KH,11KJ)'),
+          // toolbarHeight: 180,
+          title: Column(
+            children: [
+              Text('Lenovo V55t-15ARE (11KF,11KG,11KH,11KJ)'),
+              Text(
+                _currentExercise == 0 ? '' : 'Übung $_currentExercise ausgewählt',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
           actions: <Widget>[
             ElevatedButton.icon(
               onPressed: () {
@@ -361,6 +395,7 @@ class _BIOSPageState extends State<BIOSPage> {
             ),
           ],
         ),
+        
       ),
       body: Row(
         children: <Widget>[
