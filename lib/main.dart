@@ -75,34 +75,62 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void setAlternativeSettings({required int exercise}) async {
-    // Beispiel: Hier setzen wir alternative Werte
-    Map<String, String> alternativeSettings;
-
-    switch (exercise) {
-      case 1:
-        alternativeSettings = exercise1();
-        break;
-      case 2:
-        alternativeSettings = exercise2();
-        break;
-      default:
-        alternativeSettings = defaultOptions();
+    Map<String, String> alternativeSettings = {};
+    // Hole die aktuellen ersten Werte der Einstellungen.
+    
+        // 1. Schritt: Auf Basis des Navigationsmodell werden die Werte gesetzt
+   // Funktion zum rekursiven Durchlaufen aller Einträge und deren Kinder
+    void extractDefaultValues(List<NavigationEntry> entries) {
+      for (var entry in entries) {
+        if (entry.type == EntryType.selectable && entry.value.isNotEmpty) {
+          alternativeSettings[entry.key] = entry.value.first;
+        }
+        // Rekursive Suche, falls der Eintrag Kinder hat
+        if (entry.children.isNotEmpty) {
+          extractDefaultValues(entry.children);
+        }
+      }
     }
 
-    Provider.of<SettingsModel>(context, listen: false)
-        .updateAllSettings(alternativeSettings);
-    // Speichern der neuen Werte im sicheren Speicher
+    // Starte die rekursive Extraktion für jeden NavigationItem
+    for (var item in navigationModel.items) {
+      extractDefaultValues(item.entries);
+    }
 
-    alternativeSettings.forEach((key, value) async {
-      await saveSelectedOption(key, value);
-    });
+    // 2. Schritt: Werte werden mit Custom-Default-Options überschrieben
+    alternativeSettings.addAll(customDefaultOptions());
+
+    // 2. Schritt: Werte werden mit Übungsaufgaben überschrieben
+  Map<String, String> customSettings;
+  switch (exercise) {
+    case 1:
+      customSettings = exercise1();
+      alternativeSettings.addAll(customSettings);
+      break;
+    case 2:
+      customSettings = exercise2();
+      alternativeSettings.addAll(customSettings);
+      break;
+  }
+
+    print("Alle Settings: $alternativeSettings");
+
+
+  // Aktualisiert die Einstellungen mit neuen Werten.
+  Provider.of<SettingsModel>(context, listen: false)
+    .updateAllSettings(alternativeSettings);
+
+   // Speichern der neuen Werte im sicheren Speicher
+  alternativeSettings.forEach((key, value) async {
+    await saveSelectedOption(key, value);
+  });
 
     reload(); // Aktualisieren der UI, um die neuen Werte zu reflektieren
   }
 
-  Map<String, String> defaultOptions() {
+  Map<String, String> customDefaultOptions() {
     var alternativeSettings = {
-      'Language': 'English',
+      'Language': 'Frangais',
       // Fügen Sie hier weitere Einstellungen hinzu
     };
     return alternativeSettings;
