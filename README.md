@@ -1,6 +1,7 @@
 # uefi_simulator
 
-1. Install Flutter (e.g. as Extension in VS Code)
+1. Install Flutter SDK https://docs.flutter.dev/get-started/install
+1. Install Flutter IDE (e.g. as Extension in VS Code)
    e.g. Extensions IDs: Dart-Code.flutter, alexisvt.flutter-snippets
 2. Open VS Code Terminal 
 3. $ flutter pub get
