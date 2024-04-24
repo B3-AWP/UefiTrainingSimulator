@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 
 class SettingsModel extends ChangeNotifier {
-  Map<String, String> _settings = {};
+  final Map<String, String> _settings = {};
 
   void updateSetting(String key, String value) {
     _settings[key] = value;

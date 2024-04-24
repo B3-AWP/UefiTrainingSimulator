@@ -76,7 +76,7 @@ class NavigationEntryBuilder {
       IconData? icon,
       String? defaultValue}) {
     this.key = key;
-    this.value = options;
+    value = options;
     this.description = description;
     this.icon = icon;
     type = EntryType.selectable;
