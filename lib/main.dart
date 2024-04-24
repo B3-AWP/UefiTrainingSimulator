@@ -87,7 +87,6 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void setinitialSettings({required int exercise}) async {
-
     setState(() {
       if (exercise > 0) {
         _currentExercise = exercise; // Setze den aktuellen Übungszustand
@@ -120,14 +119,26 @@ class _BIOSPageState extends State<BIOSPage> {
     initialSettings.addAll(customDefaultOptions());
     print("Initial $initialSettings");
     // 2. Schritt: Werte werden mit Übungsaufgaben überschrieben
-    Map<String, String> customSettings;
+    Map<String, String> customSettings = {};
+    Map<String, Map<String, String>> customSettingsMap = {};
+
     switch (exercise) {
       case 1:
-        customSettings = exercise1();
+        exercise1().forEach((key, value) {
+          // Überprüfe, ob der "start"-Schlüssel vorhanden ist und füge ihn zu customSettings hinzu
+          if (value.containsKey('start')) {
+            customSettings[key] = value['start']!;
+          }
+        });
         initialSettings.addAll(customSettings);
         break;
       case 2:
-        customSettings = exercise2();
+          exercise2().forEach((key, value) {
+          // Überprüfe, ob der "start"-Schlüssel vorhanden ist und füge ihn zu customSettings hinzu
+          if (value.containsKey('start')) {
+            customSettings[key] = value['start']!;
+          }
+        });
         initialSettings.addAll(customSettings);
         break;
     }
@@ -147,8 +158,84 @@ class _BIOSPageState extends State<BIOSPage> {
     reload(); // Aktualisieren der UI, um die neuen Werte zu reflektieren
   }
 
+  void checkGoalValues(Map<String, String> initialSettings,
+    Map<String, Map<String, String>> goals) async {
+      int numberOfDifferences = 0;
+      List<DataRow> rows = [];
+      for (var key in goals.keys) {
+        String? currentValue = await getSelectedOption(key);
+        if (currentValue != null && goals[key]!.containsKey('goal')) {
+          if (goals[key]!['goal'] != currentValue) {
+            numberOfDifferences++;
+            rows.add(DataRow(cells: [
+              DataCell(Text(key)),
+              DataCell(Text(currentValue)),
+              DataCell(Text(goals[key]!['goal'] ?? 'Für Lösung unnötig!')), // Zielwert anzeigen
+            ]));
+          }
+        }
+    }
+
+    if (rows.isEmpty) {
+      // Wenn keine Änderungen vorliegen, füge eine Benachrichtigungszeile hinzu.
+      rows.add(DataRow(cells: [
+        DataCell(Text('Keine Fehler erkannt. Super!')),
+        DataCell(Text('')),
+        DataCell(Text(''))
+      ]));
+    }
+    else if (numberOfDifferences > 0) {
+      rows.add(DataRow(cells: [
+              DataCell(Text('$numberOfDifferences Fehler nicht gefunden!')),
+              DataCell(Text('')),
+              DataCell(Text(''))
+            ]));
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Änderungen'),
+          content: SingleChildScrollView(
+            child: DataTable(
+              columns: [
+                DataColumn(label: Text('Eintrag')),
+                DataColumn(label: Text('Ist')),
+                DataColumn(label: Text('Soll')),
+              ],
+              rows: rows,
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton.icon(
+              // onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(Icons.close),
+              label: Text("Schließen"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                exportToCSV(rows);
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.save_alt),
+              label: Text("Exportieren"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void ChangedSettings() async {
-        print("Alle Settings vor Änderung: $initialSettings");
+    print("Alle Settings vor Änderung: $initialSettings");
 
     List<DataRow> rows = [];
     for (var key in initialSettings.keys) {
@@ -177,11 +264,14 @@ class _BIOSPageState extends State<BIOSPage> {
         return AlertDialog(
           title: Text('Änderungen'),
           content: SingleChildScrollView(
-            child: DataTable(columns: [
-              DataColumn(label: Text('Eintrag')),
-              DataColumn(label: Text('Von')),
-              DataColumn(label: Text('Auf')),
-            ], rows: rows),
+            child: DataTable(
+              columns: [
+                DataColumn(label: Text('Eintrag')),
+                DataColumn(label: Text('Von')),
+                DataColumn(label: Text('Auf')),
+              ],
+              rows: rows,
+            ),
           ),
           actions: <Widget>[
             ElevatedButton.icon(
@@ -192,10 +282,8 @@ class _BIOSPageState extends State<BIOSPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
-           
             ElevatedButton.icon(
               onPressed: () async {
-                // await exportData(rows); // Stelle sicher, dass die _rows-Variable deine DataRow-Liste enthält
                 exportToCSV(rows);
                 Navigator.of(context).pop();
               },
@@ -205,8 +293,6 @@ class _BIOSPageState extends State<BIOSPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
-           
-          
           ],
         );
       },
@@ -221,21 +307,21 @@ class _BIOSPageState extends State<BIOSPage> {
     return initialSettings;
   }
 
-  Map<String, String> exercise1() {
-    var initialSettings = {
-      'Language': 'Frangais',
-      'Serial Port 1 Address': '3E8/IRQ4',
-      'Parallel Port Address': '3BC',
-      'Parallel Port Mode': 'ECP',
-      // Fügen Sie hier weitere Einstellungen hinzu
+  Map<String, Map<String, String>> exercise1() {
+    var settings = {
+      'Language': {'start': 'Frangais', 'goal': 'English'},
+      'Serial Port 1 Address': {'goal': 'New Serial Port Address'},
+      'Parallel Port Address': {'start': '3BC'},
+      'Parallel Port Mode': {'goal': 'New Parallel Port Mode'},
+      // Füge hier weitere Einstellungen hinzu
     };
-    return initialSettings;
+    return settings;
   }
 
-  Map<String, String> exercise2() {
+   Map<String, Map<String, String>> exercise2() {
     var initialSettings = {
-      'Parallel Port Address': '278',
-      'Parallel Port Mode': 'EPP',
+      'Parallel Port Address': {'start': '278'},
+      'Parallel Port Mode': {'start': 'EPP'},
       // Fügen Sie hier weitere Einstellungen hinzu
     };
     return initialSettings;
@@ -246,11 +332,12 @@ class _BIOSPageState extends State<BIOSPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: exercise > 0 ? Text("Übung $exercise"):Text("Zurücksetzen"),
-          content: 
-              exercise > 0 ? Text(
-              "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren.")
-              : Text("Bestätigen Sie, dass Sie wirklich sämtliche Werte zurückzusetzen wollen. \nAktion kann nicht rückgängig gemacht werden."),
+          title: exercise > 0 ? Text("Übung $exercise") : Text("Zurücksetzen"),
+          content: exercise > 0
+              ? Text(
+                  "Hier ist die Aufgabe, die Sie ausführen sollen. Klicken Sie auf 'Los geht's', um fortzufahren.")
+              : Text(
+                  "Bestätigen Sie, dass Sie wirklich sämtliche Werte zurückzusetzen wollen. \nAktion kann nicht rückgängig gemacht werden."),
           actions: <Widget>[
             TextButton(
               child: Text("Abbrechen"),
@@ -319,7 +406,9 @@ class _BIOSPageState extends State<BIOSPage> {
             children: [
               Text('Lenovo V55t-15ARE (11KF,11KG,11KH,11KJ)'),
               Text(
-                _currentExercise == 0 ? '' : 'Übung $_currentExercise ausgewählt',
+                _currentExercise == 0
+                    ? ''
+                    : 'Übung $_currentExercise ausgewählt',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
@@ -400,9 +489,26 @@ class _BIOSPageState extends State<BIOSPage> {
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
             ),
+            ElevatedButton.icon(
+              onPressed: () {
+                checkGoalValues(initialSettings, exercise1());
+              },
+              icon: Icon(
+                Icons.check, // Das Icon für den Button
+                size: 20, // Die Icon-Größe
+              ),
+              label: Text(
+                "Prüfung", // Der Text für den Button
+                style: TextStyle(fontSize: 16), // Die Textgröße
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
+                // Weitere Stil-Einstellungen können hier hinzugefügt werden
+              ),
+            ),
           ],
         ),
-        
       ),
       body: Row(
         children: <Widget>[
