@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uefi_simulator/controller/storage.dart';
-import 'package:uefi_simulator/model/navigationModel.dart';
+import 'package:uefi_simulator/model/navigation_model.dart';
 
 class EntryWidget extends StatefulWidget {
   final NavigationEntry entry;
@@ -33,7 +33,6 @@ class _EntryWidgetState extends State<EntryWidget> {
   @override
   Widget build(BuildContext context) {
     // Du verwendest den Provider, um den Wert zu holen, der möglicherweise aktualisiert wird.
-    var settingValue = Provider.of<SettingsModel>(context).getSetting(widget.entry.key);
 
     return FutureBuilder<String?>(
       future: widget.getSavedOption(widget.entry.key), // Hier rufst du den asynchronen Vorgang auf

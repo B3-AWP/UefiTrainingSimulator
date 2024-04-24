@@ -5,16 +5,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:uefi_simulator/EntryWidget.dart';
-import 'package:uefi_simulator/controller/exportCsv.dart';
+import 'package:uefi_simulator/entry_widget.dart';
+import 'package:uefi_simulator/controller/export_csv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
-import 'package:uefi_simulator/model/navigationModel.dart';
+import 'package:uefi_simulator/model/navigation_model.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // // Initialisiere die Einstellungen
-  // initializeSettings();
-
   runApp(
     ChangeNotifierProvider<SettingsModel>(
       create: (context) => SettingsModel(),
@@ -49,9 +45,8 @@ class BIOSPage extends StatefulWidget {
 class _BIOSPageState extends State<BIOSPage> {
   int _selectedPageIndex = 0;
   int _currentExercise = 0;
-  Map<String, String> initialSettings = {};
-  final NavigationModel navigationModel =
-      NavigationModel(); // Make sure NavigationModel is correctly defined with entries.
+  final Map<String, String> initialSettings = {};
+  final NavigationModel navigationModel = NavigationModel();
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
   @override
@@ -62,10 +57,6 @@ class _BIOSPageState extends State<BIOSPage> {
   void reload() {
     setState(() {});
   }
-
-  // Future<void> saveSelectedOption(String key, String value) async {
-  //   await storage.write(key: key, value: value);
-  // }
 
   Future<void> saveInitialState() async {
     for (var key in initialSettings.keys) {
@@ -79,14 +70,28 @@ class _BIOSPageState extends State<BIOSPage> {
   Future<void> saveSelectedOption(String key, String value) async {
     await storage.write(key: key, value: value);
     // Nach dem Speichern, erzwinge ein Neuladen des Widgets
-    // reload();
+    reload();
   }
 
   Future<String?> getSelectedOption(String key) async {
     return await storage.read(key: key);
   }
 
+  void extractDefaultValues(List<NavigationEntry> entries) {
+    for (var entry in entries) {
+      if (entry.type == EntryType.selectable && entry.value.isNotEmpty) {
+        initialSettings[entry.key] = entry.value.first;
+      }
+      // Rekursive Suche, falls der Eintrag Kinder hat
+      if (entry.children.isNotEmpty) {
+        extractDefaultValues(entry.children);
+      }
+    }
+  }
+
   void setinitialSettings({required int exercise}) async {
+    Map<String, String> customSettings = {};
+
     setState(() {
       if (exercise > 0) {
         _currentExercise = exercise; // Setze den aktuellen Übungszustand
@@ -96,22 +101,10 @@ class _BIOSPageState extends State<BIOSPage> {
     });
     // Hole die aktuellen ersten Werte der Einstellungen.
 
-    // 1. Schritt: Auf Basis des Navigationsmodell werden die Werte gesetzt
-    // Funktion zum rekursiven Durchlaufen aller Einträge und deren Kinder
-    void extractDefaultValues(List<NavigationEntry> entries) {
-      for (var entry in entries) {
-        if (entry.type == EntryType.selectable && entry.value.isNotEmpty) {
-          initialSettings[entry.key] = entry.value.first;
-        }
-        // Rekursive Suche, falls der Eintrag Kinder hat
-        if (entry.children.isNotEmpty) {
-          extractDefaultValues(entry.children);
-        }
-      }
-    }
-
     // Starte die rekursive Extraktion für jeden NavigationItem
     for (var item in navigationModel.items) {
+      // 1. Schritt: Auf Basis des Navigationsmodell werden die Werte gesetzt
+      // Funktion zum rekursiven Durchlaufen aller Einträge und deren Kinder
       extractDefaultValues(item.entries);
     }
 
@@ -119,8 +112,7 @@ class _BIOSPageState extends State<BIOSPage> {
     initialSettings.addAll(customDefaultOptions());
     print("Initial $initialSettings");
     // 2. Schritt: Werte werden mit Übungsaufgaben überschrieben
-    Map<String, String> customSettings = {};
-    Map<String, Map<String, String>> customSettingsMap = {};
+
 
     switch (exercise) {
       case 1:
@@ -133,7 +125,7 @@ class _BIOSPageState extends State<BIOSPage> {
         initialSettings.addAll(customSettings);
         break;
       case 2:
-          exercise2().forEach((key, value) {
+        exercise2().forEach((key, value) {
           // Überprüfe, ob der "start"-Schlüssel vorhanden ist und füge ihn zu customSettings hinzu
           if (value.containsKey('start')) {
             customSettings[key] = value['start']!;
@@ -159,47 +151,48 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   void checkGoalValues(Map<String, String> initialSettings,
-    Map<String, Map<String, String>> goals) async {
-      int numberOfDifferences = 0;
-      List<DataRow> rows = [];
-      for (var key in goals.keys) {
-        String? currentValue = await getSelectedOption(key);
-        if (currentValue != null && goals[key]!.containsKey('goal')) {
-          if (goals[key]!['goal'] != currentValue) {
-            numberOfDifferences++;
-            rows.add(DataRow(cells: [
-              DataCell(Text(key)),
-              DataCell(Text(currentValue)),
-              DataCell(Text(goals[key]!['goal'] ?? 'Für Lösung unnötig!')), // Zielwert anzeigen
-            ]));
-          }
+     Map<String, Map<String, String>> goals) async {
+    int numberOfDifferences = 0;
+    List<DataRow> rows = [];
+    for (var key in goals.keys) {
+      String? currentValue = await getSelectedOption(key);
+      if (currentValue != null && goals[key]!.containsKey('goal')) {
+        if (goals[key]!['goal'] != currentValue) {
+          numberOfDifferences++;
+          rows.add(DataRow(cells: [
+            DataCell(Text(key)),
+            DataCell(Text(currentValue)),
+            DataCell(Text(goals[key]!['goal'] ??
+                'Für Lösung unnötig!')), // Zielwert anzeigen
+          ]));
         }
+      }
     }
 
     if (rows.isEmpty) {
       // Wenn keine Änderungen vorliegen, füge eine Benachrichtigungszeile hinzu.
-      rows.add(DataRow(cells: [
+      rows.add(DataRow(cells: const [
         DataCell(Text('Keine Fehler erkannt. Super!')),
         DataCell(Text('')),
         DataCell(Text(''))
       ]));
-    }
-    else if (numberOfDifferences > 0) {
+    } else if (numberOfDifferences > 0) {
       rows.add(DataRow(cells: [
-              DataCell(Text('$numberOfDifferences Fehler nicht gefunden!')),
-              DataCell(Text('')),
-              DataCell(Text(''))
-            ]));
+        DataCell(Text('$numberOfDifferences Fehler nicht gefunden!')),
+        DataCell(Text('')),
+        DataCell(Text(''))
+      ]));
     }
 
     showDialog(
       context: context,
       builder: (context) {
+      if (!mounted) return SizedBox.shrink(); // Check if the widget is still mounted
         return AlertDialog(
           title: Text('Änderungen'),
           content: SingleChildScrollView(
             child: DataTable(
-              columns: [
+              columns: const [
                 DataColumn(label: Text('Eintrag')),
                 DataColumn(label: Text('Ist')),
                 DataColumn(label: Text('Soll')),
@@ -209,7 +202,6 @@ class _BIOSPageState extends State<BIOSPage> {
           ),
           actions: <Widget>[
             ElevatedButton.icon(
-              // onPressed: () => Navigator.of(context).pop(),
               onPressed: () => Navigator.of(context).pop(),
               icon: Icon(Icons.close),
               label: Text("Schließen"),
@@ -234,7 +226,7 @@ class _BIOSPageState extends State<BIOSPage> {
     );
   }
 
-  void ChangedSettings() async {
+  void checkChangedSettings() async {
     print("Alle Settings vor Änderung: $initialSettings");
 
     List<DataRow> rows = [];
@@ -251,7 +243,7 @@ class _BIOSPageState extends State<BIOSPage> {
 
     if (rows.isEmpty) {
       // Wenn keine Änderungen vorliegen, füge eine Benachrichtigungszeile hinzu.
-      rows.add(DataRow(cells: [
+      rows.add(DataRow(cells: const [
         DataCell(Text('Keine Änderungen erkannt')),
         DataCell(Text('')),
         DataCell(Text(''))
@@ -261,11 +253,12 @@ class _BIOSPageState extends State<BIOSPage> {
     showDialog(
       context: context,
       builder: (context) {
+        if (!mounted) return SizedBox.shrink(); // Check if the widget is still mounted
         return AlertDialog(
           title: Text('Änderungen'),
           content: SingleChildScrollView(
             child: DataTable(
-              columns: [
+              columns: const [
                 DataColumn(label: Text('Eintrag')),
                 DataColumn(label: Text('Von')),
                 DataColumn(label: Text('Auf')),
@@ -310,15 +303,15 @@ class _BIOSPageState extends State<BIOSPage> {
   Map<String, Map<String, String>> exercise1() {
     var settings = {
       'Language': {'start': 'Frangais', 'goal': 'English'},
-      'Serial Port 1 Address': {'goal': 'New Serial Port Address'},
+      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
       'Parallel Port Address': {'start': '3BC'},
-      'Parallel Port Mode': {'goal': 'New Parallel Port Mode'},
+      'Parallel Port Mode': {'goal': 'ECP'},
       // Füge hier weitere Einstellungen hinzu
     };
     return settings;
   }
 
-   Map<String, Map<String, String>> exercise2() {
+  Map<String, Map<String, String>> exercise2() {
     var initialSettings = {
       'Parallel Port Address': {'start': '278'},
       'Parallel Port Mode': {'start': 'EPP'},
@@ -367,24 +360,19 @@ class _BIOSPageState extends State<BIOSPage> {
   void showLoadingDialog() {
     showDialog(
       context: context,
-      barrierDismissible:
-          false, // Der Benutzer darf den Ladedialog nicht schließen
+      barrierDismissible: false, // Ladedialog nicht durch User schließen
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async =>
-              false, // Verhindert das Schließen des Dialogs durch Hardware-Zurück-Taste
-          child: AlertDialog(
-            title: Text("Übung wird vorbereitet"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                CircularProgressIndicator(),
-                SizedBox(height: 20),
-                Text("Bitte warten..."),
-              ],
-            ),
-          ),
-        );
+        return AlertDialog(
+      title: Text("Übung wird vorbereitet"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const <Widget>[
+          CircularProgressIndicator(),
+          SizedBox(height: 20),
+          Text("Bitte warten..."),
+        ],
+      ),
+    );
       },
     );
     // Starte einen Timer, der nach 2 Sekunden den Dialog schließt
@@ -473,7 +461,7 @@ class _BIOSPageState extends State<BIOSPage> {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                ChangedSettings();
+                checkChangedSettings();
               },
               icon: Icon(
                 Icons.history, // Das Icon für den Button

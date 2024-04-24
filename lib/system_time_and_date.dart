@@ -4,11 +4,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class SystemTimeAndDatePage extends StatefulWidget {
+  const SystemTimeAndDatePage({super.key});
+
   @override
-  _SystemTimeAndDatePageState createState() => _SystemTimeAndDatePageState();
+  SystemTimeAndDatePageState createState() {
+    return SystemTimeAndDatePageState();
+  }
 }
 
-class _SystemTimeAndDatePageState extends State<SystemTimeAndDatePage> {
+class SystemTimeAndDatePageState extends State<SystemTimeAndDatePage> {
   DateTime currentTime = DateTime.now();
   Timer? timeUpdater;
 
