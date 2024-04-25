@@ -9,8 +9,10 @@ import 'package:uefi_simulator/entry_widget.dart';
 import 'package:uefi_simulator/controller/export_csv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
 import 'package:uefi_simulator/model/navigation_model.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     ChangeNotifierProvider<SettingsModel>(
       create: (context) => SettingsModel(),
@@ -48,6 +50,12 @@ class _BIOSPageState extends State<BIOSPage> {
   final Map<String, String> initialSettings = {};
   final NavigationModel navigationModel = NavigationModel();
   final FlutterSecureStorage storage = FlutterSecureStorage();
+
+  final TextStyle headlineStyle = TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.blue, // Ändern Sie die Farbe nach Bedarf
+  );
 
   @override
   void initState() {
@@ -357,6 +365,52 @@ class _BIOSPageState extends State<BIOSPage> {
     );
   }
 
+  Future<void> showHelp() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    String appName = packageInfo.appName;
+    String packageName = packageInfo.packageName;
+    String version = packageInfo.version;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("$packageName", style: headlineStyle),
+              Image.asset('lib/assets/images/B3_logo.png', width: 100.0,),
+            ],
+          ),
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Version: $version"),
+              Text(""),
+              Text("Kontakt", style: headlineStyle),
+              Text("- https://github.com/B3-AWP/UefiTrainingSimulator"),
+              Text("- software@info-rommel.de"),
+              Text(""),
+              Text("Datenschutz:", style: headlineStyle),
+              Text("Es werden keine personenbezogenen Daten erfasst, ausgewertet oder weitergegeben.:"),
+              Text("GNU General Public License (GPL)"),
+            ],
+          ),
+            actions: <Widget>[
+            TextButton(
+              child: Text("Schließen"),
+              onPressed: () => Navigator.of(context)
+                  .pop(), // Schließt den Dialog ohne etwas zu tun
+            ),
+           
+          ],
+        );
+      },
+    );
+  }
+
   void showLoadingDialog() {
     showDialog(
       context: context,
@@ -459,7 +513,8 @@ class _BIOSPageState extends State<BIOSPage> {
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
             ),
-            ElevatedButton.icon(
+            //Button wird nur angezeigt, bei aktiver Übung
+            _currentExercise > 0 ? ElevatedButton.icon(
               onPressed: () {
                 checkChangedSettings();
               },
@@ -476,8 +531,9 @@ class _BIOSPageState extends State<BIOSPage> {
                     horizontal: 16, vertical: 10), // Innenabstand des Buttons
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
-            ),
-            ElevatedButton.icon(
+            ) : Container(),
+            //Button wird nur angezeigt, bei aktiver Übung
+            _currentExercise > 0 ? ElevatedButton.icon(
               onPressed: () {
                 checkGoalValues(initialSettings, exercise1());
               },
@@ -487,6 +543,24 @@ class _BIOSPageState extends State<BIOSPage> {
               ),
               label: Text(
                 "Prüfung", // Der Text für den Button
+                style: TextStyle(fontSize: 16), // Die Textgröße
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
+                // Weitere Stil-Einstellungen können hier hinzugefügt werden
+              ),
+            ) : Container(),
+            ElevatedButton.icon(
+              onPressed: () {
+                 showHelp();
+              },
+              icon: Icon(
+                Icons.help, // Das Icon für den Button
+                size: 20, // Die Icon-Größe
+              ),
+              label: Text(
+                "Info", // Der Text für den Button
                 style: TextStyle(fontSize: 16), // Die Textgröße
               ),
               style: ElevatedButton.styleFrom(
