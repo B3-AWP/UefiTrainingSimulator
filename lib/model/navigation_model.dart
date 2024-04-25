@@ -167,7 +167,7 @@ class NavigationModel {
                 key: 'Serial Port Setup',
                 description:
                     'Select this option to configure your system\'s serial port.',
-                icon: Icons.access_alarm)
+                icon: Icons.account_circle_rounded)
             .addChild(
               NavigationEntryBuilder()
                   .selectable(
@@ -189,7 +189,7 @@ class NavigationModel {
                 key: 'Parallel Port Setup',
                 description:
                     'Select this option to configure your system\'s parallel port.',
-                icon: Icons.access_alarm)
+                icon: Icons.add_to_photos_rounded)
             .addChild(
               NavigationEntryBuilder()
                   .selectable(
