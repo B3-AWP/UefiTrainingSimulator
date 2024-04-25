@@ -513,7 +513,8 @@ class _BIOSPageState extends State<BIOSPage> {
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
             ),
-            ElevatedButton.icon(
+            //Button wird nur angezeigt, bei aktiver Übung
+            _currentExercise > 0 ? ElevatedButton.icon(
               onPressed: () {
                 checkChangedSettings();
               },
@@ -530,8 +531,9 @@ class _BIOSPageState extends State<BIOSPage> {
                     horizontal: 16, vertical: 10), // Innenabstand des Buttons
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
-            ),
-            ElevatedButton.icon(
+            ) : Container(),
+            //Button wird nur angezeigt, bei aktiver Übung
+            _currentExercise > 0 ? ElevatedButton.icon(
               onPressed: () {
                 checkGoalValues(initialSettings, exercise1());
               },
@@ -548,7 +550,7 @@ class _BIOSPageState extends State<BIOSPage> {
                     horizontal: 16, vertical: 10), // Innenabstand des Buttons
                 // Weitere Stil-Einstellungen können hier hinzugefügt werden
               ),
-            ),
+            ) : Container(),
             ElevatedButton.icon(
               onPressed: () {
                  showHelp();
