@@ -6,15 +6,16 @@ import '../navigationitems/navigationitem_home.dart';
 // Define a class to manage icons centrally
 class IconConfig {
   static const Map<String, IconData> icons = {
-    'home': Icons.home,
-    'settings': Icons.settings,
-    'memory': Icons.memory,
-    'speed': Icons.speed,
-    'timer': Icons.timer,
-    'calendar_today': Icons.calendar_today,
-    'language': Icons.language,
-    'account_circle_rounded': Icons.account_circle_rounded,
-    'add_to_photos_rounded': Icons.add_to_photos_rounded,
+    'Main': Icons.home,
+    'Devices': Icons.settings,
+    'System Summary': Icons.memory,
+    'CPU Speed': Icons.speed,
+    'System Time (HH:MM:SS)': Icons.timer,
+    'System Date (MM/DD/YYYY)': Icons.calendar_today,
+    'Language': Icons.language,
+    'Serial Port Setup': Icons.account_circle_rounded,
+    'Parallel Port Setup': Icons.add_to_photos_rounded,
+    'USB Setup': Icons.usb,
   };
 }
 
