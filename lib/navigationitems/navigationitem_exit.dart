@@ -12,21 +12,24 @@ class ExitNavigationItem {
         NavigationEntry(
             key: 'Save Changes and Exit',
             value: '',
-            type: EntryType.leaf,
+            type: EntryType.clickable,
+            onTap: () {},
             description:
                 'Exit system Setup after saving the changes.'
         ),
         NavigationEntry(
             key: 'Discard Changes and Exit',
             value: '',
-            type: EntryType.leaf,
+            type: EntryType.clickable,
+            onTap: () {},
             description:
                 'Exit system Setup without saving any changes.'
         ),
         NavigationEntry(
             key: 'Load Optimal Defaults',
             value: '',
-            type: EntryType.leaf,
+            type: EntryType.clickable,
+            onTap: () {},
             description:
                 'Restore/Load Default values for all the setup options.'
         ),
