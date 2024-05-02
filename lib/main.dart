@@ -53,12 +53,12 @@ class BIOSPage extends StatefulWidget {
   _BIOSPageState createState() => _BIOSPageState();
 }
 
-class _BIOSPageState extends State<BIOSPage> {
+class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixin {
   int _selectedPageIndex = 0;
   int _currentExercise = 0;
   final Map<String, String> initialSettings = {};
   final NavigationModel navigationModel = NavigationModel();
-
+  late final TabController _tabController;
 
   final TextStyle headlineStyle = TextStyle(
         fontSize: 24,
@@ -69,10 +69,17 @@ class _BIOSPageState extends State<BIOSPage> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: navigationModel.items.length, vsync: this);
   }
 
   void reload() {
     setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> saveInitialState() async {
@@ -87,16 +94,6 @@ class _BIOSPageState extends State<BIOSPage> {
       }
     }
   }
-
-  // Future<void> saveSelectedOption(String key, String value) async {
-  //   await storage.write(key: key, value: value);
-  //   // Nach dem Speichern, erzwinge ein Neuladen des Widgets
-  //   reload();
-  // }
-
-  // Future<String?> getSelectedOption(String key) async {
-  //   return await storage.read(key: key);
-  // }
 
   void extractDefaultValues(List<NavigationEntry> entries) {
     for (var entry in entries) {
@@ -328,7 +325,7 @@ class _BIOSPageState extends State<BIOSPage> {
 
   Map<String, Map<String, String>> exercise1() {
     var settings = {
-      'Language': {'start': 'Frangais', 'goal': 'English'},
+      'Language': {'start': 'Français', 'goal': 'English'},
       'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
       'Parallel Port Address': {'start': '3BC'},
       'Parallel Port Mode': {'goal': 'ECP'},
@@ -460,7 +457,7 @@ class _BIOSPageState extends State<BIOSPage> {
     final storageService = Provider.of<StorageService>(context, listen: false);
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80.0), // Vergrößerte AppBar-Höhe
+        preferredSize: Size.fromHeight(140.0), // Vergrößerte AppBar-Höhe
         child: AppBar(
           // toolbarHeight: 180,
           title: Column(
@@ -474,6 +471,7 @@ class _BIOSPageState extends State<BIOSPage> {
               ),
             ],
           ),
+
           actions: <Widget>[
             ElevatedButton.icon(
               onPressed: () {
@@ -589,38 +587,24 @@ class _BIOSPageState extends State<BIOSPage> {
               ),
             ),
           ],
+          bottom: PreferredSize(
+          preferredSize: Size.fromHeight(48.0), // Passt die Höhe der TabBar an
+          child: TabBar(
+            controller: _tabController,
+            tabs: navigationModel.items.map((item) => Tab(icon: Icon(item.icon), text: item.title)).toList(),
+          ),
+        ),
         ),
       ),
-      body: Row(
-        children: <Widget>[
-          NavigationRail(
-            selectedIndex: _selectedPageIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedPageIndex = index;
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            destinations: navigationModel.items
-                .map((item) => NavigationRailDestination(
-                      icon: Icon(item.icon),
-                      selectedIcon: Icon(item.icon),
-                      label: Text(item.title),
-                    ))
-                .toList(),
-          ),
-          VerticalDivider(thickness: 10, width: 1),
-          Expanded(
-            child: ListView(
-              children: navigationModel.items[_selectedPageIndex].entries
-                  .map((entry) => EntryWidget(
-                      entry: entry,
-                      onSaveSelectedOption: storageService.saveOption,
-                      getSavedOption: storageService.getOption))
-                  .toList(),
-            ),
-          ),
-        ],
+      body: TabBarView(
+        controller: _tabController,
+        children: navigationModel.items.map((item) => ListView(
+          children: item.entries.map((entry) => EntryWidget(
+            entry: entry,
+            onSaveSelectedOption: storageService.saveOption,
+            getSavedOption: storageService.getOption,
+          )).toList(),
+        )).toList(),
       ),
     );
   }

@@ -62,6 +62,7 @@ class _EntryWidgetState extends State<EntryWidget> {
                             );
                           }).toList(),
                           onChanged: (newValue) {
+
                             if (newValue != null) {
                               // Setzen des neuen Werts und Benachrichtigung des Providers
                               widget.onSaveSelectedOption(widget.entry.key, newValue).then((_) {
