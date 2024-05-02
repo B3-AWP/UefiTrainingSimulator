@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-
-
 // Enumeration for different types of navigation entries
-enum EntryType { branch, leaf, selectable }
+enum EntryType { branch, leaf, selectable, clickable }
 
 class NavigationEntry {
   final String key;
@@ -12,6 +10,7 @@ class NavigationEntry {
   final EntryType type;
   final IconData? icon;
   final List<NavigationEntry> children;
+  final VoidCallback? onTap;
 
   NavigationEntry({
     required this.key,
@@ -20,9 +19,13 @@ class NavigationEntry {
     required this.type,
     this.icon,
     this.children = const [],
+    this.onTap,
   });
 
-   bool get isLeaf => type == EntryType.leaf || type == EntryType.selectable;
+  bool get isLeaf =>
+      type == EntryType.leaf ||
+      type == EntryType.selectable ||
+      type == EntryType.clickable;
 
   // Factory-Methode für Branch-Typen ohne `value`
   factory NavigationEntry.branch({
@@ -40,5 +43,19 @@ class NavigationEntry {
       children: children,
     );
   }
-}
 
+  factory NavigationEntry.clickable({
+    required String key,
+    required VoidCallback onTap,
+    String description = '',
+    IconData? icon,
+  }) {
+    return NavigationEntry(
+        key: key,
+        value: null,
+        type: EntryType.clickable,
+        onTap: onTap,
+        description: description,
+        icon: icon);
+  }
+}

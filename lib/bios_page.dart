@@ -28,6 +28,7 @@ class _BIOSPageState extends State<BIOSPage>
   late final NavigationModel navigationModel;
   late final TabController _tabController;
   late final StorageService storageService;
+  final ScrollController _scrollController = ScrollController();
 
   final TextStyle headlineStyle = TextStyle(
     fontSize: 24,
@@ -457,14 +458,23 @@ class _BIOSPageState extends State<BIOSPage>
   }
 
   Widget _buildTabPage(NavigationItem item) {
-    return ListView(
-      children: item.entries
-          .map((entry) => EntryWidget(
-                entry: entry,
-                onSaveSelectedOption: storageService.saveOption,
-                getSavedOption: storageService.getOption,
-              ))
-          .toList(),
+    return Scrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      scrollbarOrientation: ScrollbarOrientation.right,
+      thickness: 8.0,
+      radius: Radius.circular(10),
+      child: 
+        ListView(
+            controller: _scrollController,
+          children: item.entries
+              .map((entry) => EntryWidget(
+                    entry: entry,
+                    onSaveSelectedOption: storageService.saveOption,
+                    getSavedOption: storageService.getOption,
+                  ))
+              .toList(),
+        )
     );
   }
 }

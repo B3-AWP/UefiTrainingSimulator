@@ -11,11 +11,10 @@ class EntryWidget extends StatefulWidget {
   final Future<void> Function(String key, String value) onSaveSelectedOption;
   final Future<String?> Function(String key) getSavedOption;
 
-  EntryWidget({
-      required this.entry,
+  EntryWidget(
+      {required this.entry,
       required this.onSaveSelectedOption,
-      required this.getSavedOption
-  });
+      required this.getSavedOption});
 
   @override
   State<EntryWidget> createState() => _EntryWidgetState();
@@ -27,68 +26,98 @@ class _EntryWidgetState extends State<EntryWidget> {
   @override
   void initState() {
     super.initState();
-    // Eventuell hier Initialisierungslogik einfügen
+    // Initialization logic here, if necessary
   }
 
   @override
   Widget build(BuildContext context) {
-    // Du verwendest den Provider, um den Wert zu holen, der möglicherweise aktualisiert wird.
-
+    // Using Provider to fetch the value that might be updated
     return FutureBuilder<String?>(
-      future: widget.getSavedOption(widget.entry.key), // Hier rufst du den asynchronen Vorgang auf
+      future: widget.getSavedOption(widget.entry.key), // Asynchronous operation call
       builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Wenn die Daten noch geladen werden, zeige einen Ladekreis
+          // Show a loading spinner while data is being loaded
           return CircularProgressIndicator();
         } else if (snapshot.hasError) {
-          // Fehlerbehandlung, falls etwas schiefgeht
-          return Text('Fehler: ${snapshot.error}');
+          // Error handling if something goes wrong
+          return Text('Error: ${snapshot.error}');
         } else {
-          // Wenn die Daten geladen sind, wird der Wert im DropdownButton angezeigt
+          // When data is loaded, display the value in a DropdownButton
           String? currentValue = snapshot.data;
+          bool isSelectable = widget.entry.type == EntryType.selectable;
+          bool isClickable = widget.entry.type == EntryType.clickable;
 
           return widget.entry.isLeaf
               ? ListTile(
                   title: Text(widget.entry.key),
                   subtitle: Text(widget.entry.description),
                   leading: widget.entry.icon != null ? Icon(widget.entry.icon) : null,
-                  trailing: widget.entry.type == EntryType.selectable
-                      ? DropdownButton<String>(
-                          value: currentValue ?? (widget.entry.value.isNotEmpty ? widget.entry.value.first : null),
-                          items: widget.entry.value.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-
-                            if (newValue != null) {
-                              // Setzen des neuen Werts und Benachrichtigung des Providers
-                              widget.onSaveSelectedOption(widget.entry.key, newValue).then((_) {
-                                Provider.of<SettingsModel>(context, listen: false)
-                                    .updateSetting(widget.entry.key, newValue);
-                              });
-                              setState(() {
-                                currentValue = newValue;
-                              });
-                            }
-                          },
-                        )
-                      : Text(currentValue ?? ''),
+                  onTap: isClickable ? _handleClick : null,
+                  trailing: isSelectable
+                      ? _buildDropdown(currentValue) 
+                      : (isClickable ? Icon(Icons.touch_app) : Text(currentValue ?? widget.entry.value ?? "")),
                 )
               : ExpansionTile(
                   title: Text(widget.entry.key),
                   leading: widget.entry.icon != null ? Icon(widget.entry.icon) : null,
                   subtitle: Text(widget.entry.description),
-                  children: widget.entry.children
-                      .map((child) => EntryWidget(
-                            entry: child,
-                            onSaveSelectedOption: widget.onSaveSelectedOption,
-                            getSavedOption: widget.getSavedOption,
-                          ))
-                      .toList(),
+                  children: widget.entry.children.map((child) => EntryWidget(
+                    entry: child,
+                    onSaveSelectedOption: widget.onSaveSelectedOption,
+                    getSavedOption: widget.getSavedOption,
+                  )).toList(),
                 );
+        }
+      },
+    );
+  }
+
+  void _handleClick() {
+    if (widget.entry.type == EntryType.clickable && widget.entry.onTap != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(widget.entry.key), // The headline
+            content: Text(widget.entry.description), // Descriptive text
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text('Abrrechen'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                  widget.entry.onTap!(); // Perform the onTap action if available
+                },
+                child: Text('Bestätigen'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Widget _buildDropdown(String? currentValue) {
+    return DropdownButton<String>(
+      value: currentValue ?? (widget.entry.value.isNotEmpty ? widget.entry.value.first : null),
+      items: widget.entry.value.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (newValue) {
+        if (newValue != null) {
+          widget.onSaveSelectedOption(widget.entry.key, newValue).then((_) {
+            Provider.of<SettingsModel>(context, listen: false).updateSetting(widget.entry.key, newValue);
+          });
+          setState(() {
+            currentValue = newValue;
+          });
         }
       },
     );
