@@ -3,8 +3,6 @@ import 'package:flutter/widgets.dart';
 
 
 // Initialisiert ein globales Dictionary `currentSettings`, das Standardwerte für verschiedene Einstellungen speichert.
-
-
 class SettingsModel extends ChangeNotifier {
   final Map<String, String> _settings = {};
 
