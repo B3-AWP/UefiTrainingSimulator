@@ -75,7 +75,7 @@ class _EntryWidgetState extends State<EntryWidget> {
                             }
                           },
                         )
-                      : Text(currentValue ?? ''),
+                      : Text(currentValue ?? widget.entry.value ?? ""),
                 )
               : ExpansionTile(
                   title: Text(widget.entry.key),
