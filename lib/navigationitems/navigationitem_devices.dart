@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:uefi_simulator/model/navigation_model.dart';
+import 'package:uefi_simulator/model/icon_config.dart';
+import 'package:uefi_simulator/model/navigation_entry.dart';
+import 'package:uefi_simulator/model/navigation_item.dart';
 
 class DevicesNavigationItem {
   static NavigationItem buildItem() {

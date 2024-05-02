@@ -9,8 +9,10 @@ import 'package:uefi_simulator/default_values.dart';
 import 'package:uefi_simulator/entry_widget.dart';
 import 'package:uefi_simulator/controller/export_csv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
-import 'package:uefi_simulator/model/navigation_model.dart';
+import 'package:uefi_simulator/model/navigation_item.dart';
+import 'package:uefi_simulator/model/navigation_entry.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:uefi_simulator/model/navigation_model.dart';
 
 class BIOSPage extends StatefulWidget {
   const BIOSPage({super.key});
