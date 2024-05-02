@@ -21,7 +21,8 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
   int _currentExercise = 0;
   final Map<String, String> initialSettings = {};
   final NavigationModel navigationModel = NavigationModel();
-  late final TabController _tabController;
+  late TabController _tabController;
+  late StorageService storageService;
 
   final TextStyle headlineStyle = TextStyle(
         fontSize: 24,
@@ -32,7 +33,8 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: navigationModel.items.length, vsync: this);
+    storageService = Provider.of<StorageService>(context, listen: false);
+    _tabController = TabController(length: navigationModel.items.length, vsync: this); // Verwendung der Instanz
   }
 
   void reload() {
@@ -561,14 +563,19 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
       ),
       body: TabBarView(
         controller: _tabController,
-        children: navigationModel.items.map((item) => ListView(
-          children: item.entries.map((entry) => EntryWidget(
-            entry: entry,
-            onSaveSelectedOption: storageService.saveOption,
-            getSavedOption: storageService.getOption,
-          )).toList(),
-        )).toList(),
+        children: navigationModel.items.map((item) => _buildTabPage(item)).toList(),
       ),
+    );
+  }
+
+
+  Widget _buildTabPage(NavigationItem item) {
+    return ListView(
+      children: item.entries.map((entry) => EntryWidget(
+        entry: entry,
+        onSaveSelectedOption: storageService.saveOption,
+        getSavedOption: storageService.getOption,
+      )).toList(),
     );
   }
 }
