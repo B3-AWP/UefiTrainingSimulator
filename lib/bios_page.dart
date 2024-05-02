@@ -3,7 +3,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uefi_simulator/buttons.dart';
 import 'package:uefi_simulator/controller/storage_service.dart';
+import 'package:uefi_simulator/default_values.dart';
 import 'package:uefi_simulator/entry_widget.dart';
 import 'package:uefi_simulator/controller/export_csv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
@@ -425,34 +427,17 @@ class _BIOSPageState extends State<BIOSPage>
 
   List<Widget> _buildAppBarActions() {
     return [
-      _buildExerciseButton(
-          Icons.numbers, "Übung 1", () => showExerciseDialog(exercise: 1)),
-      _buildExerciseButton(
-          Icons.numbers, "Übung 2", () => showExerciseDialog(exercise: 2)),
-      _buildExerciseButton(Icons.refresh, "Zurücksetzen",
-          () => showExerciseDialog(exercise: -1)),
+      Button(icon: Icons.numbers, text: "Übung 1", onPressed: () => showExerciseDialog(exercise: 1),),
+      Button(icon: Icons.numbers, text: "Übung 2", onPressed: () => showExerciseDialog(exercise: 2),),
+      Button(icon: Icons.refresh, text: "Zurücksetzen", onPressed: () => showExerciseDialog(exercise: -1),),
+      
       if (_currentExercise > 0) ...[
-        _buildExerciseButton(
-            Icons.history, "Änderungen", () => checkChangedSettings()),
-        _buildExerciseButton(
-            Icons.check,
-            "Prüfung",
-            () =>
+        Button(icon: Icons.history, text: "Änderungen", onPressed: () => checkChangedSettings()),
+        Button(icon: Icons.check, text: "Prüfung", onPressed: () =>
                 _checkGoalValues(DefaultValues.initialSettings(), _currentExercise)),
       ],
-      _buildExerciseButton(Icons.help_outline, "Info", showHelp),
+      Button(icon: Icons.help_outline, text: "Info", onPressed: showHelp),
     ];
-  }
-
-  Widget _buildExerciseButton(
-      IconData icon, String text, VoidCallback onPressed) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 20),
-      label: Text(text, style: TextStyle(fontSize: 16)),
-      style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
-    );
   }
 
   void _checkGoalValues(Map<String, String> initialSettings, int exercise) {
@@ -482,33 +467,4 @@ class _BIOSPageState extends State<BIOSPage>
   }
 }
 
-class DefaultValues {
-  // Eine Methode, um Standard-Einstellungen zu definieren
-  static Map<String, String> initialSettings() {
-    return {
-      'Language': 'English',
-      // Fügen Sie hier weitere Standardwerte hinzu
-    };
-  }
 
-  // Eine Methode, um die Übung 1 zu definieren
-  static Map<String, Map<String, String>> exercise1() {
-    return {
-      'Language': {'start': 'Français', 'goal': 'English'},
-      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
-      'Parallel Port Address': {'start': '3BC'},
-      'Parallel Port Mode': {'goal': 'ECP'},
-      // Fügen Sie hier weitere Einstellungen hinzu
-    };
-  }
-
-  // Eine Methode, um die Übung 2 zu definieren
-  static Map<String, Map<String, String>> exercise2() {
-    return {
-      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
-      'Parallel Port Address': {'start': '278'},
-      'Parallel Port Mode': {'start': 'EPP'},
-      // Weitere Einstellungen hier
-    };
-  }
-}
