@@ -11,30 +11,33 @@ import 'package:uefi_simulator/model/navigation_model.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class BIOSPage extends StatefulWidget {
-  const BIOSPage({super.key}) ;
+  const BIOSPage({super.key});
 
   @override
   _BIOSPageState createState() => _BIOSPageState();
 }
 
-class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixin {
+class _BIOSPageState extends State<BIOSPage>
+    with SingleTickerProviderStateMixin {
   int _currentExercise = 0;
   final Map<String, String> initialSettings = {};
-  final NavigationModel navigationModel = NavigationModel();
-  late TabController _tabController;
-  late StorageService storageService;
+  late final NavigationModel navigationModel;
+  late final TabController _tabController;
+  late final StorageService storageService;
 
   final TextStyle headlineStyle = TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.blue, // Ändern Sie die Farbe nach Bedarf
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: Colors.blue, // Ändern Sie die Farbe nach Bedarf
   );
 
   @override
   void initState() {
     super.initState();
+    navigationModel = NavigationModel();
     storageService = Provider.of<StorageService>(context, listen: false);
-    _tabController = TabController(length: navigationModel.items.length, vsync: this); // Verwendung der Instanz
+    _tabController =
+        TabController(length: navigationModel.items.length, vsync: this);
   }
 
   void reload() {
@@ -74,8 +77,7 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
 
   void setinitialSettings({required int exercise}) async {
     Map<String, String> customSettings = {};
-        final storageService = Provider.of<StorageService>(context, listen: false);
-
+    final storageService = Provider.of<StorageService>(context, listen: false);
 
     setState(() {
       if (exercise > 0) {
@@ -94,14 +96,14 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
     }
 
     // 2. Schritt: Werte werden mit Custom-Default-Options überschrieben
-    initialSettings.addAll(customDefaultOptions());
+    initialSettings.clear();
+    initialSettings.addAll(DefaultValues.initialSettings());
     print("Initial $initialSettings");
     // 2. Schritt: Werte werden mit Übungsaufgaben überschrieben
 
-
     switch (exercise) {
       case 1:
-        exercise1().forEach((key, value) {
+        DefaultValues.exercise1().forEach((key, value) {
           // Überprüfe, ob der "start"-Schlüssel vorhanden ist und füge ihn zu customSettings hinzu
           if (value.containsKey('start')) {
             customSettings[key] = value['start']!;
@@ -110,7 +112,7 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
         initialSettings.addAll(customSettings);
         break;
       case 2:
-        exercise2().forEach((key, value) {
+        DefaultValues.exercise2().forEach((key, value) {
           // Überprüfe, ob der "start"-Schlüssel vorhanden ist und füge ihn zu customSettings hinzu
           if (value.containsKey('start')) {
             customSettings[key] = value['start']!;
@@ -136,8 +138,8 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
   }
 
   void checkGoalValues(Map<String, String> initialSettings,
-     Map<String, Map<String, String>> goals) async {
-              final storageService = Provider.of<StorageService>(context, listen: false);
+      Map<String, Map<String, String>> goals) async {
+    final storageService = Provider.of<StorageService>(context, listen: false);
 
     int numberOfDifferences = 0;
     List<DataRow> rows = [];
@@ -174,7 +176,8 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
     showDialog(
       context: context,
       builder: (context) {
-      if (!mounted) return SizedBox.shrink(); // Check if the widget is still mounted
+        if (!mounted)
+          return SizedBox.shrink(); // Check if the widget is still mounted
         return AlertDialog(
           title: Text('Änderungen'),
           content: SingleChildScrollView(
@@ -215,7 +218,7 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
 
   void checkChangedSettings() async {
     print("Alle Settings vor Änderung: $initialSettings");
-        final storageService = Provider.of<StorageService>(context, listen: false);
+    final storageService = Provider.of<StorageService>(context, listen: false);
 
     List<DataRow> rows = [];
     for (var key in initialSettings.keys) {
@@ -241,7 +244,8 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
     showDialog(
       context: context,
       builder: (context) {
-        if (!mounted) return SizedBox.shrink(); // Check if the widget is still mounted
+        if (!mounted)
+          return SizedBox.shrink(); // Check if the widget is still mounted
         return AlertDialog(
           title: Text('Änderungen'),
           content: SingleChildScrollView(
@@ -278,34 +282,6 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
         );
       },
     );
-  }
-
-  Map<String, String> customDefaultOptions() {
-    var initialSettings = {
-      'Language': 'English',
-      // Fügen Sie hier weitere Einstellungen hinzu
-    };
-    return initialSettings;
-  }
-
-  Map<String, Map<String, String>> exercise1() {
-    var settings = {
-      'Language': {'start': 'Français', 'goal': 'English'},
-      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
-      'Parallel Port Address': {'start': '3BC'},
-      'Parallel Port Mode': {'goal': 'ECP'},
-      // Füge hier weitere Einstellungen hinzu
-    };
-    return settings;
-  }
-
-  Map<String, Map<String, String>> exercise2() {
-    var initialSettings = {
-      'Parallel Port Address': {'start': '278'},
-      'Parallel Port Mode': {'start': 'EPP'},
-      // Fügen Sie hier weitere Einstellungen hinzu
-    };
-    return initialSettings;
   }
 
   void showExerciseDialog({required int exercise}) {
@@ -348,7 +324,7 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
   Future<void> showHelp() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
-    String appName = packageInfo.appName;
+    // String appName = packageInfo.appName;
     String packageName = packageInfo.packageName;
     String version = packageInfo.version;
 
@@ -360,7 +336,10 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("$packageName", style: headlineStyle),
-              Image.asset('lib/assets/images/B3_logo.png', width: 100.0,),
+              Image.asset(
+                'lib/assets/images/B3_logo.png',
+                width: 100.0,
+              ),
             ],
           ),
           content: Column(
@@ -374,17 +353,17 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
               Text("- software@info-rommel.de"),
               Text(""),
               Text("Datenschutz:", style: headlineStyle),
-              Text("Es werden keine personenbezogenen Daten erfasst, ausgewertet oder weitergegeben.:"),
+              Text(
+                  "Es werden keine personenbezogenen Daten erfasst, ausgewertet oder weitergegeben.:"),
               Text("GNU General Public License (GPL)"),
             ],
           ),
-            actions: <Widget>[
+          actions: <Widget>[
             TextButton(
               child: Text("Schließen"),
               onPressed: () => Navigator.of(context)
                   .pop(), // Schließt den Dialog ohne etwas zu tun
             ),
-           
           ],
         );
       },
@@ -397,16 +376,16 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
       barrierDismissible: false, // Ladedialog nicht durch User schließen
       builder: (BuildContext context) {
         return AlertDialog(
-      title: Text("Übung wird vorbereitet"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: const <Widget>[
-          CircularProgressIndicator(),
-          SizedBox(height: 20),
-          Text("Bitte warten..."),
-        ],
-      ),
-    );
+          title: Text("Übung wird vorbereitet"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const <Widget>[
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text("Bitte warten..."),
+            ],
+          ),
+        );
       },
     );
     // Starte einen Timer, der nach 2 Sekunden den Dialog schließt
@@ -419,163 +398,117 @@ class _BIOSPageState extends State<BIOSPage>  with SingleTickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    final storageService = Provider.of<StorageService>(context, listen: false);
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(140.0), // Vergrößerte AppBar-Höhe
-        child: AppBar(
-          // toolbarHeight: 180,
-          title: Column(
-            children: [
-              Text('Lenovo V55t-15ARE (11KF,11KG,11KH,11KJ)'),
-              Text(
-                _currentExercise == 0
-                    ? ''
-                    : 'Übung $_currentExercise ausgewählt',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-
-          actions: <Widget>[
-            ElevatedButton.icon(
-              onPressed: () {
-                showExerciseDialog(
-                    exercise: 1); // Deine Methode zum Anzeigen des Dialogs
-              },
-              icon: Icon(
-                Icons.numbers, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Übung 1", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                showExerciseDialog(
-                    exercise: 2); // Deine Methode zum Anzeigen des Dialogs
-              },
-              icon: Icon(
-                Icons.numbers, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Übung 2", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                showExerciseDialog(
-                    exercise: -1); // Deine Methode zum Anzeigen des Dialogs
-              },
-              icon: Icon(
-                Icons.refresh, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Zurücksetzen", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ),
-            //Button wird nur angezeigt, bei aktiver Übung
-            _currentExercise > 0 ? ElevatedButton.icon(
-              onPressed: () {
-                checkChangedSettings();
-              },
-              icon: Icon(
-                Icons.history, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Änderungen", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ) : Container(),
-            //Button wird nur angezeigt, bei aktiver Übung
-            _currentExercise > 0 ? ElevatedButton.icon(
-              onPressed: () {
-                checkGoalValues(initialSettings, exercise1());
-              },
-              icon: Icon(
-                Icons.check, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Prüfung", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ) : Container(),
-            ElevatedButton.icon(
-              onPressed: () {
-                 showHelp();
-              },
-              icon: Icon(
-                Icons.help, // Das Icon für den Button
-                size: 20, // Die Icon-Größe
-              ),
-              label: Text(
-                "Info", // Der Text für den Button
-                style: TextStyle(fontSize: 16), // Die Textgröße
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10), // Innenabstand des Buttons
-                // Weitere Stil-Einstellungen können hier hinzugefügt werden
-              ),
-            ),
-          ],
-          bottom: PreferredSize(
-          preferredSize: Size.fromHeight(48.0), // Passt die Höhe der TabBar an
+      appBar: AppBar(
+        title: Text('Lenovo V55t-15ARE (11KF,11KG,11KH,11KJ)'),
+        actions: _buildAppBarActions(),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(90.0),
           child: TabBar(
             controller: _tabController,
-            tabs: navigationModel.items.map((item) => Tab(icon: Icon(item.icon), text: item.title)).toList(),
+            tabs: navigationModel.items
+                .map((item) => Tab(
+                      icon: Icon(item.icon),
+                      text: item.title,
+                    ))
+                .toList(),
           ),
-        ),
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: navigationModel.items.map((item) => _buildTabPage(item)).toList(),
+        children:
+            navigationModel.items.map((item) => _buildTabPage(item)).toList(),
       ),
     );
   }
 
+  List<Widget> _buildAppBarActions() {
+    return [
+      _buildExerciseButton(
+          Icons.numbers, "Übung 1", () => showExerciseDialog(exercise: 1)),
+      _buildExerciseButton(
+          Icons.numbers, "Übung 2", () => showExerciseDialog(exercise: 2)),
+      _buildExerciseButton(Icons.refresh, "Zurücksetzen",
+          () => showExerciseDialog(exercise: -1)),
+      if (_currentExercise > 0) ...[
+        _buildExerciseButton(
+            Icons.history, "Änderungen", () => checkChangedSettings()),
+        _buildExerciseButton(
+            Icons.check,
+            "Prüfung",
+            () =>
+                _checkGoalValues(DefaultValues.initialSettings(), _currentExercise)),
+      ],
+      _buildExerciseButton(Icons.help_outline, "Info", showHelp),
+    ];
+  }
+
+  Widget _buildExerciseButton(
+      IconData icon, String text, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      label: Text(text, style: TextStyle(fontSize: 16)),
+      style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
+    );
+  }
+
+  void _checkGoalValues(Map<String, String> initialSettings, int exercise) {
+    Map<String, Map<String, String>> goals = {};
+    switch (exercise) {
+      case 1:
+        goals = DefaultValues.exercise1();
+        break;
+      case 2:
+        goals = DefaultValues.exercise2();
+        break;
+    }
+
+    checkGoalValues(initialSettings, goals);
+  }
 
   Widget _buildTabPage(NavigationItem item) {
     return ListView(
-      children: item.entries.map((entry) => EntryWidget(
-        entry: entry,
-        onSaveSelectedOption: storageService.saveOption,
-        getSavedOption: storageService.getOption,
-      )).toList(),
+      children: item.entries
+          .map((entry) => EntryWidget(
+                entry: entry,
+                onSaveSelectedOption: storageService.saveOption,
+                getSavedOption: storageService.getOption,
+              ))
+          .toList(),
     );
+  }
+}
+
+class DefaultValues {
+  // Eine Methode, um Standard-Einstellungen zu definieren
+  static Map<String, String> initialSettings() {
+    return {
+      'Language': 'English',
+      // Fügen Sie hier weitere Standardwerte hinzu
+    };
+  }
+
+  // Eine Methode, um die Übung 1 zu definieren
+  static Map<String, Map<String, String>> exercise1() {
+    return {
+      'Language': {'start': 'Français', 'goal': 'English'},
+      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
+      'Parallel Port Address': {'start': '3BC'},
+      'Parallel Port Mode': {'goal': 'ECP'},
+      // Fügen Sie hier weitere Einstellungen hinzu
+    };
+  }
+
+  // Eine Methode, um die Übung 2 zu definieren
+  static Map<String, Map<String, String>> exercise2() {
+    return {
+      'Serial Port 1 Address': {'goal': '3E8/IRQ4'},
+      'Parallel Port Address': {'start': '278'},
+      'Parallel Port Mode': {'start': 'EPP'},
+      // Weitere Einstellungen hier
+    };
   }
 }
