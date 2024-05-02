@@ -1,21 +1,30 @@
 // ignore_for_file: prefer_final_fields, library_private_types_in_public_api, prefer_const_constructors
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:uefi_simulator/controller/storage_service.dart';
 import 'package:uefi_simulator/entry_widget.dart';
 import 'package:uefi_simulator/controller/export_csv.dart';
 import 'package:uefi_simulator/controller/storage.dart';
 import 'package:uefi_simulator/model/navigation_model.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider<SettingsModel>(
-      create: (context) => SettingsModel(),
+    MultiProvider(
+      providers: [
+        Provider<StorageService>(
+          create: (_) => StorageService(),
+        ),
+         ChangeNotifierProvider<SettingsModel>(
+            create: (context) => SettingsModel(),
+         ),
+      ],
       child: MyApp(),
     ),
   );
@@ -38,7 +47,7 @@ class MyApp extends StatelessWidget {
 }
 
 class BIOSPage extends StatefulWidget {
-  const BIOSPage({super.key});
+  const BIOSPage({super.key}) ;
 
   @override
   _BIOSPageState createState() => _BIOSPageState();
@@ -49,7 +58,7 @@ class _BIOSPageState extends State<BIOSPage> {
   int _currentExercise = 0;
   final Map<String, String> initialSettings = {};
   final NavigationModel navigationModel = NavigationModel();
-  final FlutterSecureStorage storage = FlutterSecureStorage();
+
 
   final TextStyle headlineStyle = TextStyle(
         fontSize: 24,
@@ -67,23 +76,27 @@ class _BIOSPageState extends State<BIOSPage> {
   }
 
   Future<void> saveInitialState() async {
+    final storageService = Provider.of<StorageService>(context, listen: false);
+
     for (var key in initialSettings.keys) {
-      String? value = await getSelectedOption(key);
+      String? value = await storageService.getOption(key);
       if (value != null) {
-        initialSettings[key] = value;
+        setState(() {
+          initialSettings[key] = value;
+        });
       }
     }
   }
 
-  Future<void> saveSelectedOption(String key, String value) async {
-    await storage.write(key: key, value: value);
-    // Nach dem Speichern, erzwinge ein Neuladen des Widgets
-    reload();
-  }
+  // Future<void> saveSelectedOption(String key, String value) async {
+  //   await storage.write(key: key, value: value);
+  //   // Nach dem Speichern, erzwinge ein Neuladen des Widgets
+  //   reload();
+  // }
 
-  Future<String?> getSelectedOption(String key) async {
-    return await storage.read(key: key);
-  }
+  // Future<String?> getSelectedOption(String key) async {
+  //   return await storage.read(key: key);
+  // }
 
   void extractDefaultValues(List<NavigationEntry> entries) {
     for (var entry in entries) {
@@ -99,6 +112,8 @@ class _BIOSPageState extends State<BIOSPage> {
 
   void setinitialSettings({required int exercise}) async {
     Map<String, String> customSettings = {};
+        final storageService = Provider.of<StorageService>(context, listen: false);
+
 
     setState(() {
       if (exercise > 0) {
@@ -152,7 +167,7 @@ class _BIOSPageState extends State<BIOSPage> {
     // Speichern der neuen Werte im sicheren Speicher
     saveInitialState();
     initialSettings.forEach((key, value) async {
-      await saveSelectedOption(key, value);
+      await storageService.saveOption(key, value);
     });
 
     reload(); // Aktualisieren der UI, um die neuen Werte zu reflektieren
@@ -160,10 +175,12 @@ class _BIOSPageState extends State<BIOSPage> {
 
   void checkGoalValues(Map<String, String> initialSettings,
      Map<String, Map<String, String>> goals) async {
+              final storageService = Provider.of<StorageService>(context, listen: false);
+
     int numberOfDifferences = 0;
     List<DataRow> rows = [];
     for (var key in goals.keys) {
-      String? currentValue = await getSelectedOption(key);
+      String? currentValue = await storageService.getOption(key);
       if (currentValue != null && goals[key]!.containsKey('goal')) {
         if (goals[key]!['goal'] != currentValue) {
           numberOfDifferences++;
@@ -236,10 +253,11 @@ class _BIOSPageState extends State<BIOSPage> {
 
   void checkChangedSettings() async {
     print("Alle Settings vor Änderung: $initialSettings");
+        final storageService = Provider.of<StorageService>(context, listen: false);
 
     List<DataRow> rows = [];
     for (var key in initialSettings.keys) {
-      String? currentValue = await getSelectedOption(key);
+      String? currentValue = await storageService.getOption(key);
       if (currentValue != null && currentValue != initialSettings[key]) {
         rows.add(DataRow(cells: [
           DataCell(Text(key)),
@@ -439,6 +457,7 @@ class _BIOSPageState extends State<BIOSPage> {
 
   @override
   Widget build(BuildContext context) {
+    final storageService = Provider.of<StorageService>(context, listen: false);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(80.0), // Vergrößerte AppBar-Höhe
@@ -596,8 +615,8 @@ class _BIOSPageState extends State<BIOSPage> {
               children: navigationModel.items[_selectedPageIndex].entries
                   .map((entry) => EntryWidget(
                       entry: entry,
-                      onSaveSelectedOption: saveSelectedOption,
-                      getSavedOption: getSelectedOption))
+                      onSaveSelectedOption: storageService.saveOption,
+                      getSavedOption: storageService.getOption))
                   .toList(),
             ),
           ),
