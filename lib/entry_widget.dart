@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uefi_simulator/controller/storage.dart';
-import 'package:uefi_simulator/model/navigation_model.dart';
+import 'package:uefi_simulator/model/navigation_entry.dart';
 
 class EntryWidget extends StatefulWidget {
   final NavigationEntry entry;
